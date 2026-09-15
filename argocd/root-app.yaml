@@ -1,0 +1,33 @@
+# App-of-Apps root. This single Application watches the `argocd/applications`
+# directory in the GitOps repo and creates/updates the child Applications
+# (dev, staging, prod). Apply this once; everything else is managed via Git.
+#
+#   kubectl apply -f argocd/project.yaml
+#   kubectl apply -f argocd/root-app.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: netflow-root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: netflow
+  source:
+    repoURL: https://github.com/Sanjay10tech/Devops-Project-gitops.git
+    targetRevision: main
+    # Directory of child Application manifests (App-of-Apps).
+    path: argocd/applications
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    # The root app itself self-heals and prunes child Applications — safe because
+    # it only manages Application CRs, not workloads.
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=false

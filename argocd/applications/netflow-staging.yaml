@@ -1,0 +1,34 @@
+# Staging environment — automated sync after the dev workflow is validated.
+# Self-heal on; pruning enabled but with foreground propagation for safety.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: netflow-staging
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: netflow
+  source:
+    repoURL: https://github.com/Sanjay10tech/Devops-Project-gitops.git
+    targetRevision: main
+    path: k8s/overlays/staging
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: netflow-staging
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 10

@@ -1,0 +1,18 @@
+# Terraform
+.terraform/
+# NOTE: .terraform.lock.hcl is intentionally NOT ignored — commit it so provider
+# versions are pinned and installs are reproducible across machines/CI.
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# Variable files may contain environment-specific values / secrets
+*.tfvars
+!*.tfvars.example
+
+# Backend config with real values
+backend.hcl
+
+# Plan output
+*.tfplan

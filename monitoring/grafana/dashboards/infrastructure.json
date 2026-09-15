@@ -1,0 +1,71 @@
+{
+  "title": "Netflow — Infrastructure / Nodes",
+  "uid": "netflow-infrastructure",
+  "tags": ["netflow", "infrastructure"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Node CPU utilization (%)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "percent", "max": 100 } },
+      "targets": [
+        { "expr": "100 * (1 - avg by (node) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])))", "legendFormat": "{{node}}" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Node memory utilization (%)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "percent", "max": 100 } },
+      "targets": [
+        { "expr": "100 * (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes))", "legendFormat": "{{node}}" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Node filesystem used (%)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "percent", "max": 100 } },
+      "targets": [
+        { "expr": "100 * (1 - (node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\"}))", "legendFormat": "{{node}} {{mountpoint}}" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Nodes Ready",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum(kube_node_status_condition{condition=\"Ready\", status=\"true\"})", "legendFormat": "ready" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Cluster CPU: requests vs allocatable (cores)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum(kube_pod_container_resource_requests{resource=\"cpu\"})", "legendFormat": "requested" },
+        { "expr": "sum(kube_node_status_allocatable{resource=\"cpu\"})", "legendFormat": "allocatable" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Cluster memory: requests vs allocatable (bytes)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "targets": [
+        { "expr": "sum(kube_pod_container_resource_requests{resource=\"memory\"})", "legendFormat": "requested" },
+        { "expr": "sum(kube_node_status_allocatable{resource=\"memory\"})", "legendFormat": "allocatable" }
+      ]
+    }
+  ]
+}

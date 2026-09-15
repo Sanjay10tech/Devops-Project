@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  labels:
+    app: backend
+# Non-secret configuration only. Secrets (DB_PASSWORD, etc.) are delivered
+# separately as the `backend-secrets` Secret via the External Secrets Operator
+# (sourced from AWS Secrets Manager) and are NEVER committed to Git.
+data:
+  NODE_ENV: "production"
+  PORT: "4000"
+  DB_HOST: "netflow-db"
+  DB_PORT: "5432"
+  DB_NAME: "netflix"
+  LOG_LEVEL: "info"
+  CORS_ORIGINS: "https://netflow.example.com"

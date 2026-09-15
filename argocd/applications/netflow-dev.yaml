@@ -1,0 +1,35 @@
+# Dev environment — fully automated GitOps.
+# Dev is the safest place to run automated sync + self-heal + prune, so we prove
+# the end-to-end workflow here first before enabling it in higher environments.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: netflow-dev
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: netflow
+  source:
+    repoURL: https://github.com/Sanjay10tech/Devops-Project-gitops.git
+    targetRevision: main
+    path: k8s/overlays/dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: netflow-dev
+  syncPolicy:
+    automated:
+      selfHeal: true      # revert manual drift back to Git
+      prune: true         # delete resources removed from Git
+      allowEmpty: false   # never sync an empty desired state (guardrail)
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 10   # keep 10 revisions for rollback

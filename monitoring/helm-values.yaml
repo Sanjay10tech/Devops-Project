@@ -1,0 +1,63 @@
+# Helm values for the kube-prometheus-stack chart, which bundles Prometheus,
+# Alertmanager, Grafana, node-exporter, and kube-state-metrics — covering the
+# Kubernetes and infrastructure metrics (CPU/memory/restarts/availability/nodes)
+# out of the box. Our application metrics are scraped via pod annotations.
+#
+# Install:
+#   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+#   helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+#     -n monitoring --create-namespace -f monitoring/helm-values.yaml
+#
+# The chart deploys node-exporter and kube-state-metrics with the labels our
+# standalone prometheus.yml expects, so either approach works.
+
+prometheus:
+  prometheusSpec:
+    # Discover our application pods via their prometheus.io/scrape annotations.
+    additionalScrapeConfigs:
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: "true"
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            target_label: __address__
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            target_label: app
+    retention: 15d
+    resources:
+      requests: { cpu: 250m, memory: 512Mi }
+      limits:   { cpu: "1",  memory: 2Gi }
+
+# Our alert rules (also provided as a standalone PrometheusRule at
+# monitoring/prometheus/alert-rules.yml).
+additionalPrometheusRulesMap:
+  netflow-rules:
+    groups: []   # load from monitoring/prometheus/alert-rules.yml (kubectl apply as PrometheusRule)
+
+grafana:
+  adminPassword: ""   # set via --set or a pre-created secret; do NOT hardcode here
+  defaultDashboardsEnabled: true
+  # Load our dashboards from ConfigMaps labeled grafana_dashboard=1.
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+    datasources:
+      enabled: true
+
+alertmanager:
+  enabled: true

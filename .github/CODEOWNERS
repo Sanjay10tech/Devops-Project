@@ -1,0 +1,25 @@
+# CODEOWNERS — required reviewers per area.
+# When branch protection has "Require review from Code Owners" enabled, changes to
+# these paths require approval from the listed owners.
+#
+# Replace @Sanjay10tech with team handles (e.g. @org/backend) as the team grows.
+
+# Default owner for everything
+*                       @Sanjay10tech
+
+# Application code
+/backend/               @Sanjay10tech
+/frontend/              @Sanjay10tech
+/database/              @Sanjay10tech
+
+# Delivery / infrastructure (higher-risk: require owner review)
+/infra/                 @Sanjay10tech
+/k8s/                   @Sanjay10tech
+/argocd/                @Sanjay10tech
+/jenkins/               @Sanjay10tech
+/security/              @Sanjay10tech
+/monitoring/            @Sanjay10tech
+/.github/               @Sanjay10tech
+
+# Security-sensitive docs
+/SECURITY.md            @Sanjay10tech

@@ -1,0 +1,10 @@
+# Root-level ignore (applies when building with the repo root as context).
+node_modules
+**/node_modules
+**/dist
+**/coverage
+.git
+.env
+**/.env
+!**/.env.example
+*.log

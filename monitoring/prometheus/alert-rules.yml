@@ -1,0 +1,157 @@
+# Prometheus alerting rules for the Netflow platform.
+# App-rate/error/latency rules use the metrics exposed by the backend
+# (http_requests_total, http_request_duration_seconds — verified via /metrics).
+# K8s/infra rules use kube-state-metrics, cAdvisor, and node-exporter metrics.
+groups:
+  # ------------------------------------------------------------- Application
+  - name: application
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_requests_total{status_code=~"5.."}[5m]))
+            / sum(rate(http_requests_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High 5xx error rate ({{ $value | humanizePercentage }})"
+          description: "More than 5% of requests are returning 5xx over the last 5m."
+
+      - alert: HighLatencyP95
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High p95 latency ({{ $value }}s)"
+          description: "95th-percentile request latency has exceeded 1s for 10m."
+
+      - alert: BackendDown
+        expr: up{app="backend"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Backend target is down"
+          description: "Prometheus cannot scrape the backend /metrics endpoint."
+
+  # -------------------------------------------------------------- Kubernetes
+  - name: kubernetes-workloads
+    rules:
+      - alert: PodRestartSpike
+        expr: increase(kube_pod_container_status_restarts_total{namespace=~"netflow.*"}[15m]) > 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pod {{ $labels.pod }} restarting frequently"
+          description: "More than 3 restarts in 15m for {{ $labels.namespace }}/{{ $labels.pod }}."
+
+      - alert: UnavailableReplicas
+        expr: kube_deployment_status_replicas_unavailable{namespace=~"netflow.*"} > 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Deployment {{ $labels.deployment }} has unavailable replicas"
+          description: "{{ $value }} replica(s) unavailable for 10m."
+
+      - alert: DeploymentReplicaMismatch
+        expr: |
+          kube_deployment_spec_replicas{namespace=~"netflow.*"}
+            != kube_deployment_status_replicas_available{namespace=~"netflow.*"}
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Deployment {{ $labels.deployment }} not at desired replicas"
+          description: "Desired and available replica counts differ for 15m."
+
+      - alert: PodNotReady
+        expr: |
+          sum by (namespace, pod) (
+            kube_pod_status_phase{namespace=~"netflow.*", phase=~"Pending|Unknown"}
+          ) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pod {{ $labels.pod }} not ready"
+          description: "Pod has been Pending/Unknown for 10m."
+
+  # ----------------------------------------------- Container resource usage
+  - name: container-resources
+    rules:
+      - alert: HighContainerCPU
+        expr: |
+          sum by (namespace, pod) (
+            rate(container_cpu_usage_seconds_total{namespace=~"netflow.*", container!=""}[5m])
+          )
+          / sum by (namespace, pod) (
+            kube_pod_container_resource_limits{namespace=~"netflow.*", resource="cpu"}
+          ) > 0.9
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU on {{ $labels.pod }}"
+          description: "Container CPU usage is >90% of its limit for 10m."
+
+      - alert: HighContainerMemory
+        expr: |
+          sum by (namespace, pod) (
+            container_memory_working_set_bytes{namespace=~"netflow.*", container!=""}
+          )
+          / sum by (namespace, pod) (
+            kube_pod_container_resource_limits{namespace=~"netflow.*", resource="memory"}
+          ) > 0.9
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory on {{ $labels.pod }}"
+          description: "Container memory is >90% of its limit for 10m (risk of OOMKill)."
+
+  # -------------------------------------------------------------- Node/infra
+  - name: nodes
+    rules:
+      - alert: NodeNotReady
+        expr: kube_node_status_condition{condition="Ready", status="true"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node {{ $labels.node }} not Ready"
+          description: "Node has been NotReady for 5m."
+
+      - alert: NodeHighCPU
+        expr: |
+          100 * (1 - avg by (node) (rate(node_cpu_seconds_total{mode="idle"}[5m]))) > 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU on node {{ $labels.node }}"
+          description: "Node CPU utilization >85% for 10m."
+
+      - alert: NodeHighMemory
+        expr: |
+          100 * (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory on node {{ $labels.node }}"
+          description: "Node memory utilization >85% for 10m."
+
+      - alert: NodeDiskPressure
+        expr: kube_node_status_condition{condition="DiskPressure", status="true"} == 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Node {{ $labels.node }} under disk pressure"
+          description: "Kubelet reports DiskPressure on this node."

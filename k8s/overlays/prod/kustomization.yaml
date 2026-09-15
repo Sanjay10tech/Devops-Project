@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: netflow-prod
+
+resources:
+  - ../../base
+
+# Higher baseline for production.
+replicas:
+  - name: backend
+    count: 3
+  - name: frontend
+    count: 3
+
+patches:
+  - path: patch-hpa.yaml            # higher autoscaling ceilings
+  - path: patch-pdb.yaml            # stronger disruption budget
+  - path: patch-externalsecret.yaml # prod Secrets Manager path
+
+# The Jenkins pipeline runs, from this directory:
+#   kustomize edit set image \
+#     netflow-backend=<ECR>/netflow-backend:<git-sha> \
+#     netflow-frontend=<ECR>/netflow-frontend:<git-sha>
+# which rewrites the entries below to immutable git-SHA tags. ArgoCD then syncs.
+images:
+  - name: netflow-backend
+    newTag: 0.0.0-placeholder     # CI overwrites with the immutable git SHA
+  - name: netflow-frontend
+    newTag: 0.0.0-placeholder

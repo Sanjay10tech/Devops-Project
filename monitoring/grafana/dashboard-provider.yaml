@@ -1,0 +1,13 @@
+# Grafana dashboard provider. Loads JSON dashboards from a directory
+# (mount the dashboards at /var/lib/grafana/dashboards/).
+apiVersion: 1
+providers:
+  - name: netflow
+    orgId: 1
+    folder: Netflow
+    type: file
+    disableDeletion: false
+    editable: true
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards

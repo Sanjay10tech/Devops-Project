@@ -1,0 +1,29 @@
+# Least-privilege RBAC. The app workloads do not talk to the Kubernetes API, so
+# they get an empty/near-empty Role. This exists to make intent explicit and to
+# provide a place to grant narrow permissions if ever needed.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: backend
+  labels:
+    app: backend
+rules:
+  # Read-only access to its own ConfigMap, if the app ever needs it. Nothing else.
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: ["backend-config"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: backend
+  labels:
+    app: backend
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: backend
+subjects:
+  - kind: ServiceAccount
+    name: backend

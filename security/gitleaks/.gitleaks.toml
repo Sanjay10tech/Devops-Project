@@ -1,0 +1,22 @@
+# Gitleaks configuration. Extends the default ruleset and adds project allowlists.
+# Used by the Jenkins pipeline and the GitHub Actions secret-scan workflow.
+
+title = "Netflow Gitleaks config"
+
+[extend]
+# Start from Gitleaks' built-in rules, then layer our allowlist on top.
+useDefault = true
+
+[allowlist]
+description = "Global allowlist for known-safe placeholders"
+paths = [
+  '''\.env\.example$''',
+  '''(^|/)README\.md$''',
+  '''(^|/)ARCHITECTURE\.md$''',
+]
+# Placeholder/example values used in docs and .env.example are not real secrets.
+regexes = [
+  '''netflix''',                       # local dev DB password placeholder
+  '''000000000000\.dkr\.ecr''',        # example ECR account id
+  '''your[-_]?(token|key|secret)''',
+]

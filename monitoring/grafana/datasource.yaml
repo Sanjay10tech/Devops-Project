@@ -1,0 +1,13 @@
+# Grafana datasource provisioning. Grafana loads this on startup
+# (mount at /etc/grafana/provisioning/datasources/).
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    # In-cluster Prometheus service in the monitoring namespace.
+    url: http://prometheus.monitoring.svc:9090
+    isDefault: true
+    jsonData:
+      timeInterval: 15s
+      httpMethod: POST

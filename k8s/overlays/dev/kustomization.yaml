@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: netflow-dev
+
+resources:
+  - ../../base
+
+# Lower footprint for development.
+replicas:
+  - name: backend
+    count: 1
+  - name: frontend
+    count: 1
+
+patches:
+  - path: patch-config.yaml         # dev env values in the ConfigMap
+  - path: patch-ingress.yaml        # dev hostname
+  - path: patch-hpa.yaml            # smaller HPA ceilings
+  - path: patch-externalsecret.yaml # dev Secrets Manager path
+
+images:
+  - name: netflow-backend
+    newTag: dev
+  - name: netflow-frontend
+    newTag: dev

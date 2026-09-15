@@ -1,0 +1,45 @@
+# Production environment.
+#
+# IMPORTANT (requirement 6): automated sync is intentionally DISABLED at first.
+# Production starts in MANUAL sync mode so a human reviews and triggers each
+# promotion. Once the dev/staging workflow is proven, enable automation by
+# uncommenting the `automated:` block below (self-heal + careful prune).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: netflow-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: netflow
+  source:
+    repoURL: https://github.com/Sanjay10tech/Devops-Project-gitops.git
+    targetRevision: main
+    path: k8s/overlays/prod
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: netflow-prod
+  syncPolicy:
+    # --- Phase 1 (initial): MANUAL sync. No `automated:` block. ---
+    # An operator syncs via the UI/CLI after reviewing the diff:
+    #   argocd app sync netflow-prod
+    #
+    # --- Phase 2 (after validation): enable automation by uncommenting. ---
+    # automated:
+    #   selfHeal: true          # revert unauthorized manual drift
+    #   prune: true             # remove resources deleted from Git
+    #   allowEmpty: false       # never apply an empty desired state
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true          # prune only after new resources are healthy
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 15s
+        factor: 2
+        maxDuration: 5m
+  # Keep more history in prod for confident rollbacks.
+  revisionHistoryLimit: 20

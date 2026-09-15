@@ -1,0 +1,41 @@
+# AppProject scopes what the Netflow applications are allowed to do:
+# which source repos they may deploy from, which cluster/namespaces they may
+# deploy to, and which resource kinds are permitted. This is a guardrail so a
+# compromised or misconfigured Application cannot deploy anywhere.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: netflow
+  namespace: argocd
+  # Keep the project even if the bootstrap app is deleted.
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Netflow application delivery
+
+  # Only this GitOps repo may be a source.
+  sourceRepos:
+    - https://github.com/Sanjay10tech/Devops-Project-gitops.git
+
+  # Only the app's own namespaces on the in-cluster destination.
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: netflow-dev
+    - server: https://kubernetes.default.svc
+      namespace: netflow-staging
+    - server: https://kubernetes.default.svc
+      namespace: netflow-prod
+    - server: https://kubernetes.default.svc
+      namespace: argocd            # for the App-of-Apps child Applications
+
+  # Cluster-scoped resources this project may manage (namespaces only).
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+
+  # Namespaced resources allowed (broad but explicit; tighten as needed).
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
+
+  # Optional: restrict who can sync prod via RBAC roles (managed in ArgoCD RBAC).

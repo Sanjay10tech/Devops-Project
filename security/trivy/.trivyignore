@@ -1,0 +1,6 @@
+# Trivy ignore file.
+# List specific CVE IDs to accept (with justification + review date). Keep this
+# list short and reviewed; prefer fixing/upgrading over ignoring.
+#
+# Format: one CVE ID per line. Example:
+# CVE-2024-XXXXX   # accepted YYYY-MM-DD: not exploitable in our usage, revisit next quarter

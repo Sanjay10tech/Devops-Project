@@ -1,0 +1,9 @@
+# hadolint configuration. We fail on warnings/errors; a few info-level rules are
+# ignored only where they conflict with our deliberate, documented choices.
+failure-threshold: warning
+ignored:
+  # DL3018: pin apk versions — we intentionally use the alpine default for
+  # dumb-init (a tiny, stable init); revisit if reproducibility requires pinning.
+  - DL3018
+trustedRegistries:
+  - docker.io

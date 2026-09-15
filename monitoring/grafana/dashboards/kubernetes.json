@@ -1,0 +1,79 @@
+{
+  "title": "Netflow — Kubernetes Workloads",
+  "uid": "netflow-kubernetes",
+  "tags": ["netflow", "kubernetes"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "time": { "from": "now-3h", "to": "now" },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "CPU usage by pod (cores)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=~\"netflow.*\", container!=\"\"}[5m]))", "legendFormat": "{{pod}}" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Memory working set by pod (bytes)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "targets": [
+        { "expr": "sum by (pod) (container_memory_working_set_bytes{namespace=~\"netflow.*\", container!=\"\"})", "legendFormat": "{{pod}}" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Pod restarts (increase over 1h)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum by (pod) (increase(kube_pod_container_status_restarts_total{namespace=~\"netflow.*\"}[1h]))", "legendFormat": "{{pod}}" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Deployment replicas (desired vs available)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "kube_deployment_spec_replicas{namespace=~\"netflow.*\"}", "legendFormat": "{{deployment}} desired" },
+        { "expr": "kube_deployment_status_replicas_available{namespace=~\"netflow.*\"}", "legendFormat": "{{deployment}} available" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Unavailable replicas",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 16 },
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [
+        { "color": "green", "value": null }, { "color": "red", "value": 1 }
+      ] } } },
+      "targets": [
+        { "expr": "sum(kube_deployment_status_replicas_unavailable{namespace=~\"netflow.*\"})", "legendFormat": "unavailable" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Pods not Running",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 16 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum(kube_pod_status_phase{namespace=~\"netflow.*\", phase=~\"Pending|Unknown|Failed\"})", "legendFormat": "not running" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Running pods",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 16 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum(kube_pod_status_phase{namespace=~\"netflow.*\", phase=\"Running\"})", "legendFormat": "running" }
+      ]
+    }
+  ]
+}

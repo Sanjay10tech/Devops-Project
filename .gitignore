@@ -1,0 +1,76 @@
+# ---------------------------------------------------------------------------
+# Secrets & credentials — NEVER commit these
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+id_rsa*
+*.kubeconfig
+kubeconfig
+.kube/
+credentials
+.aws/
+aws.json
+# Block raw Kubernetes Secret manifests that may hold plaintext values.
+*secret*.yaml
+*secret*.yml
+# Allow value-less ExternalSecret / SecretStore manifests + overlay patches
+# (these contain only references to a secret manager, never secret values).
+!**/externalsecret.yaml
+!**/patch-externalsecret.yaml
+!**/templates/*secret*.yaml
+serviceaccount*.json
+gha-creds-*.json
+
+# ---------------------------------------------------------------------------
+# Node / JavaScript / TypeScript
+# ---------------------------------------------------------------------------
+node_modules/
+dist/
+build/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+.vite/
+.eslintcache
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---------------------------------------------------------------------------
+# Terraform
+# ---------------------------------------------------------------------------
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+override.tf
+override.tf.json
+
+# ---------------------------------------------------------------------------
+# Docker / local scratch
+# ---------------------------------------------------------------------------
+docker-compose.override.yml
+# Local scratch / log capture files (inline comments are NOT valid in .gitignore)
+_*.txt
+
+# ---------------------------------------------------------------------------
+# Editor / OS
+# ---------------------------------------------------------------------------
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+.DS_Store
+Thumbs.db

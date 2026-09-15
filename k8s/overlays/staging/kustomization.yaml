@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: netflow-staging
+
+resources:
+  - ../../base
+
+replicas:
+  - name: backend
+    count: 2
+  - name: frontend
+    count: 2
+
+patches:
+  - path: patch-config.yaml
+  - path: patch-ingress.yaml
+  - path: patch-externalsecret.yaml
+
+images:
+  - name: netflow-backend
+    newTag: staging
+  - name: netflow-frontend
+    newTag: staging
