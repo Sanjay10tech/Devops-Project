@@ -91,6 +91,17 @@ docker compose up -d --build
 Tear down with `docker compose down` (add `-v` to drop the database volume).
 Full container workflow and a verified test run: [`docker/README.md`](./docker/README.md).
 
+## Screenshots
+
+The application and pipeline running locally / on GitHub:
+
+| | |
+|---|---|
+| ![Screenshot 1](./IMAGE/screenshot-01.png) | ![Screenshot 2](./IMAGE/screenshot-02.png) |
+| ![Screenshot 3](./IMAGE/screenshot-03.png) | ![Screenshot 4](./IMAGE/screenshot-04.png) |
+| ![Screenshot 5](./IMAGE/screenshot-05.png) | ![Screenshot 6](./IMAGE/screenshot-06.png) |
+| ![Screenshot 7](./IMAGE/screenshot-07.png) | ![Screenshot 8](./IMAGE/screenshot-08.png) |
+
 ## Local development (without Docker)
 
 Requires Node.js 18+ and a running PostgreSQL instance.
