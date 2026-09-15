@@ -115,6 +115,24 @@ cd backend
 npm test          # Vitest unit tests (services + validation)
 npm run typecheck # TypeScript type checking
 ```
+ ## screenshotS
+<img width="1360" height="686" alt="screenshot-01" src="https://github.com/user-attachments/assets/ab0fad51-5b40-423c-a05e-411754eadd09" />
+<img width="1340" height="673" alt="screenshot-02" src="https://github.com/user-attachments/assets/97f99037-4229-4556-8fc8-50b14975332b" />
+<img width="844" height="660" alt="screenshot-03" src="https://github.com/user-attachments/assets/bbc2c0d1-359b-4b1a-8e98-d5dd2ec03800" />
+
+
+<img width="540" height="347" alt="screenshot-04" src="https://github.com/user-attachments/assets/ebf857b8-b646-4baa-9e97-f65e00a9387b" />
+
+
+ <img width="397" height="238" alt="screenshot-05" src="https://github.com/user-attachments/assets/3b00657a-97ea-4718-916e-ad40ea664ae3" />
+<img width="869" height="671" alt="screenshot-06" src="https://github.com/user-attachments/assets/4d1f0fcd-39f1-4351-a950-2dba7687b518" />
+
+<img width="1123" height="680" alt="screenshot-07" src="https://github.com/user-attachments/assets/0b2ea939-6255-4d81-a1eb-214690ad1209" />
+
+
+<img width="1264" height="715" alt="screenshot-08" src="https://github.com/user-attachments/assets/0f289bc8-2330-47f7-b318-a964024dcf2f" />
+
+ 
 
 ## Delivery pipeline
 
