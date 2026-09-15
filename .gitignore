@@ -24,6 +24,10 @@ aws.json
 !**/externalsecret.yaml
 !**/patch-externalsecret.yaml
 !**/templates/*secret*.yaml
+# Allow GitHub Actions workflow files (e.g. the Gitleaks secret-scan workflow).
+# These define CI jobs and never contain secret values.
+!.github/workflows/*.yml
+!.github/workflows/*.yaml
 serviceaccount*.json
 gha-creds-*.json
 
