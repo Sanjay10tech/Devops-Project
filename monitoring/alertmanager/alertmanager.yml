@@ -1,7 +1,22 @@
-# Alertmanager routing. Receiver webhooks/keys are injected from a Secret at
-# deploy time — do NOT commit real Slack/PagerDuty/email credentials here.
+# Alertmanager configuration.
+#
+# Production-ready, credential-free by design:
+#   - No email addresses, webhook URLs, tokens, or passwords are hardcoded here.
+#   - Real destinations are supplied at deploy time via SECRET-BACKED FILES that
+#     Alertmanager reads at runtime (the *_file / *_url_file options), mounted
+#     from a Kubernetes Secret. If those files are absent, the receivers below
+#     are valid no-op receivers, so this config is VALID even with no destination
+#     configured (alerts are grouped/routed internally but not delivered).
+#
+# To enable delivery, mount a Secret at /etc/alertmanager/secrets containing any
+# of: slack-api-url, pagerduty-routing-key, smtp-password — then uncomment the
+# matching block below. See monitoring/README.md.
+
 global:
   resolve_timeout: 5m
+  # SMTP host/from can be set here as NON-secret values (no password inline).
+  # smtp_smarthost: "smtp.example.com:587"
+  # smtp_from: "alerts@example.com"
 
 route:
   receiver: default
@@ -10,26 +25,39 @@ route:
   group_interval: 5m
   repeat_interval: 4h
   routes:
-    # Page on critical alerts; everything else goes to the default channel.
+    # Critical alerts page more aggressively via the "critical" receiver.
     - matchers:
         - severity = "critical"
       receiver: critical
       repeat_interval: 1h
+    # Warnings go to the standard channel.
+    - matchers:
+        - severity = "warning"
+      receiver: default
 
 receivers:
+  # Default receiver. Valid as-is (no-op). To deliver to Slack, mount the webhook
+  # URL as a file and uncomment; the URL is NEVER stored in Git.
   - name: default
-    # Configure a real receiver via a Secret-provided override, e.g. Slack:
     # slack_configs:
-    #   - api_url_file: /etc/alertmanager/secrets/slack-url
+    #   - api_url_file: /etc/alertmanager/secrets/slack-api-url
     #     channel: "#netflow-alerts"
+    #     send_resolved: true
 
+  # Critical receiver. Valid as-is (no-op). To page via PagerDuty, mount the
+  # routing key as a file and uncomment.
   - name: critical
-    # e.g. PagerDuty:
     # pagerduty_configs:
-    #   - routing_key_file: /etc/alertmanager/secrets/pagerduty-key
+    #   - routing_key_file: /etc/alertmanager/secrets/pagerduty-routing-key
+    #     send_resolved: true
+    # Optional email escalation (password comes from a mounted file, not inline):
+    # email_configs:
+    #   - to: "oncall@example.com"
+    #     auth_password_file: /etc/alertmanager/secrets/smtp-password
+    #     send_resolved: true
 
 inhibit_rules:
-  # A critical alert silences a warning for the same alertname/namespace.
+  # A firing critical alert suppresses matching warnings (same alert/namespace).
   - source_matchers: [severity = "critical"]
     target_matchers: [severity = "warning"]
     equal: ["alertname", "namespace"]
